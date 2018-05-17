@@ -10,28 +10,35 @@ import UIKit
 
 class TodoListViewController: UITableViewController {
 
-    let defaults = UserDefaults.standard
+//    let defaults = UserDefaults.standard
     var itemArray = [Item]()
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+//        let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first\
+//        print(dataFilePath!)
         // Do any additional setup after loading the view, typically from a nib.
         
-        let newItem1 = Item()
-        newItem1.title = "Test1"
-        itemArray.append(newItem1)
+//        let newItem1 = Item()
+//        newItem1.title = "Test1"
+//        itemArray.append(newItem1)
+//
+//        let newItem2 = Item()
+//        newItem2.title = "Test2"
+//        itemArray.append(newItem2)
+//
+//        let newItem3 = Item()
+//        newItem3.title = "Test3"
+//        itemArray.append(newItem3)
         
-        let newItem2 = Item()
-        newItem2.title = "Test2"
-        itemArray.append(newItem2)
+     
         
-        let newItem3 = Item()
-        newItem3.title = "Test3"
-        itemArray.append(newItem3)
-        
-        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
-            itemArray = items
-        }
+//        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
+//            itemArray = items
+//        }
+        loadData()
     }
 
     override func didReceiveMemoryWarning() {
@@ -46,7 +53,7 @@ class TodoListViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        print("dd \(indexPath)")
+//        print("dd \(indexPath)")
         let cell = tableView.dequeueReusableCell(withIdentifier: "todoItemCell", for: indexPath)
         
         let item = itemArray[indexPath.row]
@@ -61,8 +68,8 @@ class TodoListViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
-        
-        tableView.reloadData()
+        saveItem()
+//        tableView.reloadData()
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -83,8 +90,8 @@ class TodoListViewController: UITableViewController {
             newItem.title = textField.text!
             
             self.itemArray.append(newItem)
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
-            self.tableView.reloadData()
+//            self.defaults.set(self.itemArray, forKey: "TodoListArray")
+            self.saveItem()
         }
         
         alert.addTextField { (alertTextField) in
@@ -97,6 +104,28 @@ class TodoListViewController: UITableViewController {
         present(alert,animated: true, completion: nil)
         
     }
-    
+    func saveItem () {
+        let encoder = PropertyListEncoder()
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        }catch{
+            print("Error encoding itemArray \(error)" )
+        }
+        
+        self.tableView.reloadData()
+    }
+    func loadData (){
+        if let data = try? Data(contentsOf: dataFilePath!){
+            let decoder = PropertyListDecoder()
+            do{
+                itemArray = try decoder.decode([Item].self, from: data)
+                
+            }catch{
+                print ("Error decodig from data\(error)")
+            }
+
+        }
+    }
 }
 
